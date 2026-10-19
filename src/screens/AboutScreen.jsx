@@ -41,17 +41,18 @@ export default function AboutScreen() {
       {/* Header */}
       <View style={styles.logoBox}>
         <View style={styles.logo}>
-          <View style={[styles.logoBar, { backgroundColor: Colors.left }]} />
-          <View style={[styles.logoBar, { backgroundColor: Colors.center }]} />
-          <View style={[styles.logoBar, { backgroundColor: Colors.right }]} />
+          <View style={styles.lens}>
+            <View style={styles.lensCore} />
+          </View>
+          <View style={styles.lensHandle} />
         </View>
-        <Text style={styles.appName}>Groundish News</Text>
-        <Text style={styles.tagline}>The same story, from every side.</Text>
+        <Text style={styles.appName}>NewsLens</Text>
+        <Text style={styles.tagline}>AI Powered Personalized News Aggregator</Text>
       </View>
 
       {/* About paragraph */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>What is Groundish News?</Text>
+        <Text style={styles.cardTitle}>What is NewsLens?</Text>
         <Text style={styles.cardBody}>
           A news aggregator inspired by Ground News. It pulls the same story from across the political spectrum, shows you who covered it, how each side headlined it, who owns the outlets doing the covering — and which side isn't running the story at all.
         </Text>
@@ -94,19 +95,40 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   logo: {
-    flexDirection: 'row',
-    gap: 4,
-    backgroundColor: '#0f172a',
-    padding: 8,
-    borderRadius: 8,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.bgCard,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
     marginBottom: 12,
+    position: 'relative',
   },
-  logoBar: {
-    width: 10,
+  lens: {
+    width: 24,
     height: 24,
-    borderRadius: 3,
+    borderRadius: 12,
+    borderWidth: 3,
+    borderColor: Colors.left,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lensCore: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.center,
+  },
+  lensHandle: {
+    position: 'absolute',
+    width: 10,
+    height: 3,
+    right: 7,
+    bottom: 10,
+    backgroundColor: Colors.left,
+    transform: [{ rotate: '45deg' }],
   },
   appName: {
     fontSize: 24,

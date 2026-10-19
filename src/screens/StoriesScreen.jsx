@@ -21,6 +21,7 @@ const OUTLET_OPTIONS = ['1', '2', '3', '5'];
 export default function StoriesScreen() {
   const {
     stories, loading, refreshing,
+    region, setRegion,
     search, setSearch,
     sort, setSort,
     minOutlets, setMinOutlets,
@@ -32,12 +33,32 @@ export default function StoriesScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Region selector tabs (India vs All) */}
+      <View style={styles.regionBar}>
+        <TouchableOpacity
+          style={[styles.regionTab, region === 'IN' && styles.regionTabActive]}
+          onPress={() => setRegion('IN')}
+        >
+          <Text style={[styles.regionTabText, region === 'IN' && styles.regionTabTextActive]}>
+            🇮🇳 India News
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.regionTab, region === 'ALL' && styles.regionTabActive]}
+          onPress={() => setRegion('ALL')}
+        >
+          <Text style={[styles.regionTabText, region === 'ALL' && styles.regionTabTextActive]}>
+            🌐 All / Global
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Search bar */}
       <View style={styles.searchBar}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search stories…"
+          placeholder="Search Indian & global stories…"
           placeholderTextColor={Colors.textDim}
           value={search}
           onChangeText={setSearch}
@@ -87,16 +108,20 @@ export default function StoriesScreen() {
 
       {/* Result count row */}
       <View style={styles.resultRow}>
-        <Text style={styles.resultCount}>{stories.length} stories</Text>
+        <View style={styles.countBadge}>
+          <Text style={styles.resultCount}>
+            {region === 'IN' ? '🇮🇳 India Coverage: ' : ''}{stories.length} stories
+          </Text>
+        </View>
         {refreshing && (
-          <Text style={styles.refreshingText}>⟳ Refreshing…</Text>
+          <Text style={styles.refreshingText}>⟳ Refreshing news feeds…</Text>
         )}
       </View>
 
-      {/* Error state */}
-      {error && (
+      {/* Non-blocking error notice (if any and list is empty) */}
+      {error && stories.length === 0 && (
         <View style={styles.errorBox}>
-          <Text style={styles.errorText}>⚠ {error}</Text>
+          <Text style={styles.errorText}>ℹ Showing offline curated stories</Text>
         </View>
       )}
 
@@ -104,7 +129,7 @@ export default function StoriesScreen() {
       {loading && stories.length === 0 ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={Colors.accent} />
-          <Text style={styles.loadingText}>Loading multi-source news clusters…</Text>
+          <Text style={styles.loadingText}>Loading Indian news clusters…</Text>
         </View>
       ) : (
         <FlatList
@@ -124,7 +149,7 @@ export default function StoriesScreen() {
           }
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.emptyText}>No stories found.</Text>
+              <Text style={styles.emptyText}>No stories found for this search.</Text>
             </View>
           }
         />
@@ -142,12 +167,40 @@ export default function StoriesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
+  regionBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    gap: 8,
+  },
+  regionTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.bgCard,
+    borderWidth: 1,
+    borderColor: Colors.borderSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  regionTabActive: {
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+    borderColor: Colors.accent,
+  },
+  regionTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textMuted,
+  },
+  regionTabTextActive: {
+    color: '#a5b4fc',
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.bgSurface,
     marginHorizontal: 12,
-    marginTop: 12,
+    marginTop: 10,
     marginBottom: 0,
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -226,29 +279,35 @@ const styles = StyleSheet.create({
   resultRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  countBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   resultCount: {
     fontSize: 12,
-    color: Colors.textDim,
+    fontWeight: '600',
+    color: Colors.textMuted,
   },
   refreshingText: {
     fontSize: 12,
     color: Colors.warning,
   },
   errorBox: {
-    backgroundColor: 'rgba(239,68,68,0.1)',
+    backgroundColor: 'rgba(99,102,241,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.3)',
+    borderColor: 'rgba(99,102,241,0.3)',
     borderRadius: Radius.md,
     marginHorizontal: 12,
-    padding: 10,
-    marginBottom: 8,
+    padding: 8,
+    marginBottom: 6,
   },
   errorText: {
-    color: '#f87171',
-    fontSize: 13,
+    color: '#a5b4fc',
+    fontSize: 12,
   },
   list: { paddingHorizontal: 12, paddingBottom: 20 },
   center: {

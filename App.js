@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, View, Text, StyleSheet } from 'react-native';
+import { ActivityIndicator, StatusBar, View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AppProvider } from './src/context/AppContext';
@@ -8,6 +8,8 @@ import BlindspotsScreen from './src/screens/BlindspotsScreen';
 import SourcesScreen from './src/screens/SourcesScreen';
 import MyBiasScreen from './src/screens/MyBiasScreen';
 import AboutScreen from './src/screens/AboutScreen';
+import AccountScreen from './src/screens/AccountScreen';
+import AuthScreen from './src/screens/AuthScreen';
 import { Colors } from './src/theme';
 import { useApp } from './src/context/AppContext';
 
@@ -52,6 +54,7 @@ function AppTabs() {
           fontWeight: '700',
           fontSize: 17,
         },
+        headerTitle: () => null,
         tabBarStyle: {
           backgroundColor: Colors.tabBar,
           borderTopWidth: 1,
@@ -68,11 +71,16 @@ function AppTabs() {
           marginTop: 2,
         },
         headerLeft: () => (
-          <View style={styles.headerLogo}>
+          <View style={styles.brand}>
             <View style={styles.logo}>
-              <View style={[styles.logoBar, { backgroundColor: Colors.left }]} />
-              <View style={[styles.logoBar, { backgroundColor: Colors.center }]} />
-              <View style={[styles.logoBar, { backgroundColor: Colors.right }]} />
+              <View style={styles.lens}>
+                <View style={styles.lensCore} />
+              </View>
+              <View style={styles.lensHandle} />
+            </View>
+            <View>
+              <Text style={styles.brandName}>NewsLens India</Text>
+              <Text style={styles.tagline}>Multi-Perspective Indian & Global News</Text>
             </View>
           </View>
         ),
@@ -123,22 +131,54 @@ function AppTabs() {
           tabBarIcon: ({ focused }) => <TabIcon emoji="ℹ️" focused={focused} />,
         }}
       />
+      <Tab.Screen
+        name="Account"
+        component={AccountScreen}
+        options={{
+          title: 'Account',
+          tabBarLabel: 'Account',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+        }}
+      />
     </Tab.Navigator>
+  );
+}
+
+function AppContent() {
+  const { authLoading, authUser } = useApp();
+
+  if (authLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={Colors.accent} />
+      </View>
+    );
+  }
+
+  if (!authUser) return <AuthScreen />;
+  return (
+    <NavigationContainer>
+      <AppTabs />
+    </NavigationContainer>
   );
 }
 
 export default function App() {
   return (
     <AppProvider>
-      <NavigationContainer>
-        <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
-        <AppTabs />
-      </NavigationContainer>
+      <StatusBar barStyle="light-content" backgroundColor={Colors.bg} />
+      <AppContent />
     </AppProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.bg,
+  },
   tabBadge: {
     position: 'absolute',
     top: -4,
@@ -156,21 +196,54 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
-  headerLogo: {
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     paddingLeft: 14,
   },
   logo: {
-    flexDirection: 'row',
-    gap: 3,
-    backgroundColor: '#0f172a',
-    padding: 5,
-    borderRadius: 5,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.bgCard,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: Colors.border,
+    position: 'relative',
   },
-  logoBar: {
+  lens: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.left,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lensCore: {
     width: 5,
-    height: 14,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.center,
+  },
+  lensHandle: {
+    position: 'absolute',
+    width: 7,
+    height: 2,
+    right: 3,
+    bottom: 6,
+    backgroundColor: Colors.left,
+    transform: [{ rotate: '45deg' }],
+  },
+  brandName: {
+    color: Colors.textMain,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  tagline: {
+    color: Colors.textMuted,
+    fontSize: 8,
   },
 });

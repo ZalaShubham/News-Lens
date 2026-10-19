@@ -13,7 +13,7 @@ import { Colors, Radius, Spacing } from '../theme';
  * ownership data, summary, and an AI Perspective Synthesis button.
  */
 export default function StoryDetailModal({ storyId, visible, onClose }) {
-  const { trackBias } = useApp();
+  const { trackBias, getStoryById, summarizeStory } = useApp();
   const [story, setStory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
@@ -24,13 +24,15 @@ export default function StoryDetailModal({ storyId, visible, onClose }) {
     setLoading(true);
     setStory(null);
     setAiSummary(null);
-    fetch(`${API_BASE}/api/story/${storyId}`)
-      .then(r => r.json())
+
+    getStoryById(storyId)
       .then(data => {
-        setStory(data);
-        trackBias(data);
+        if (data) {
+          setStory(data);
+          trackBias(data);
+        }
       })
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId, visible]);
 
@@ -38,13 +40,8 @@ export default function StoryDetailModal({ storyId, visible, onClose }) {
     if (!story) return;
     setSummarizing(true);
     try {
-      const res = await fetch(`${API_BASE}/api/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: story.id }),
-      });
-      const data = await res.json();
-      setAiSummary(data.text || 'AI synthesis not available.');
+      const text = await summarizeStory(story.id);
+      setAiSummary(text);
     } catch {
       setAiSummary('AI Synthesis: Multi-perspective synthesis generated across left, center, and right outlets.');
     } finally {
@@ -172,6 +169,21 @@ function FactualityBadge({ factuality }) {
 }
 
 function CoverageColumn({ title, articles, pct, accent }) {
+  const openArticle = (a) => {
+    if (!a?.url) return;
+    // Check if the link is a bare homepage like "https://example.com"
+    const isBareDomain = /^https?:\/\/[^\/]+\/?$/.test(a.url.trim());
+    if (isBareDomain) {
+      const searchUrl = `https://news.google.com/search?q=${encodeURIComponent(a.source + ' ' + a.title)}`;
+      Linking.openURL(searchUrl).catch(() => {});
+    } else {
+      Linking.openURL(a.url).catch(() => {
+        const searchUrl = `https://news.google.com/search?q=${encodeURIComponent(a.source + ' ' + a.title)}`;
+        Linking.openURL(searchUrl).catch(() => {});
+      });
+    }
+  };
+
   return (
     <View style={[styles.campBox, { borderLeftColor: accent }]}>
       <View style={styles.campHeader}>
@@ -185,12 +197,15 @@ function CoverageColumn({ title, articles, pct, accent }) {
           <TouchableOpacity
             key={a.id}
             style={styles.articleItem}
-            onPress={() => Linking.openURL(a.url)}
+            onPress={() => openArticle(a)}
             activeOpacity={0.7}
           >
             <View style={styles.articleMeta}>
-              <Text style={styles.articleSource}>{a.source}</Text>
-              {a.factuality && <FactualityBadge factuality={a.factuality} />}
+              <Text style={styles.articleSource}>📰 {a.source}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                {a.factuality && <FactualityBadge factuality={a.factuality} />}
+                <Text style={styles.openIcon}>↗</Text>
+              </View>
             </View>
             <Text style={styles.articleTitle} numberOfLines={2}>{a.title}</Text>
           </TouchableOpacity>
@@ -404,5 +419,10 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '600',
     textTransform: 'uppercase',
+  },
+  openIcon: {
+    fontSize: 12,
+    color: '#818cf8',
+    fontWeight: '700',
   },
 });
